@@ -12,4 +12,9 @@ export class DogsService {
   findAll(): Dog[] {
     return this.dogs;
   }
+
+  // action(): Dog[] {
+  //   return `${this.dogs} abc`
+  // }
+
 }

@@ -1,10 +1,9 @@
-import { Body, Controller, Get, HttpCode, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Post } from '@nestjs/common';
 import { CreateDogDto } from './dto/create-dog.dto';
 import { DogsService } from './dogs.service';
 import { Dog } from './interfaces/dog.interface';
-import { Request } from 'express';
 
-@Controller('dogs')
+@Controller('dogs'  )
 export class DogsController {
   constructor(private dogService: DogsService){}
 
