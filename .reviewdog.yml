@@ -1,0 +1,18 @@
+runner:
+  name: github-actions
+
+filter:
+  - name: ESLint
+    report_name: Checkstyle Report
+    reporter: checkstyle
+    level: info
+    fail_on_error: true
+
+formatter:
+  checkstyle:
+    name: checkstyle
+    option:
+      checkstyle.reportName: eslint_checkstyle
+      outputStyle: 'with-errorname'
+    reporter: github-pr-review
+    level: info

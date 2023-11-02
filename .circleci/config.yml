@@ -1,16 +1,104 @@
 version: 2.1
-orbs:
-  node: circleci/node@3.0.0
+
+parameters:
+  check-legacy-node-version:
+    type: boolean
+    default: false
+  legacy-node-version:
+    type: string
+    default: '14.21.3'
+  maintenance-node-version:
+    type: string
+    default: '16.20'
+  active-node-version:
+    type: string
+    default: '18.17'
+  current-node-version:
+    type: string
+    default: '20.5'
+
+aliases:
+  - &restore-cache
+    restore_cache:
+      key: dependency-cache-{{ checksum "package.json" }}
+  - &save-cache
+    save_cache:
+      key: dependency-cache-{{ checksum "package.json" }}
+      paths:
+        - ./node_modules
+  - &install-deps
+    run:
+      name: Install dependencies
+      command: npm ci --legacy-peer-deps
+  - &build-packages
+    run:
+      name: Build
+      command: npm run build
+  - &run-unit-tests
+    run:
+      name: Test
+      command: npm run test -- --passWithNoTests
+
 jobs:
-  build-and-test:
-    executor:
-      name: node/default
+  build:
+    working_directory: ~/nest
+    docker:
+      - image: cimg/node:<< pipeline.parameters.maintenance-node-version >>
     steps:
       - checkout
-      - node/install-packages
       - run:
-        command: npm run test
+          name: Update NPM version
+          command: 'sudo npm install -g npm@^9'
+      - *restore-cache
+      - *install-deps
+      - *save-cache
+      - *build-packages
+
+  test:
+    parameters:
+      node-version:
+        type: string
+    working_directory: ~/nest
+    docker:
+      - image: cimg/node:<< parameters.node-version >>
+    steps:
+      - checkout
+      - *restore-cache
+      - *install-deps
+      - *build-packages
+      - *run-unit-tests
+
+  lint:
+    working_directory: ~/nest
+    docker:
+      - image: cimg/node:<< pipeline.parameters.maintenance-node-version >>
+    steps:
+      - checkout
+      - *restore-cache
+      - *install-deps
+      - run:
+          name: Lint
+          command: npm run lint
+      - run:
+          name: Lint commit
+          command: ./node_modules/.bin/commitlint-circle -c .commitlintrc.json
+
 workflows:
   build-and-test:
     jobs:
-      - build-and-test
+      - build
+      - test:
+          requires:
+            - build
+      - lint:
+          requires:
+            - build
+      - integration_tests:
+          requires:
+            - build
+      - samples:
+          requires:
+            - build
+      - codechecks_benchmarks:
+          requires:
+            - build
