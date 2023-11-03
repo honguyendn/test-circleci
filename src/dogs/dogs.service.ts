@@ -13,8 +13,7 @@ export class DogsService {
     return this.dogs;
   }
 
-  // action(): Dog[] {
-  //   return `${this.dogs} abc`
-  // }
-
+  action(): string{
+    return " Gau gau  "
+  }
 }
